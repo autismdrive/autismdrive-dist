@@ -38,6 +38,7 @@ logging_config = {
     "handlers": [
       "console",
       "file",
+      "email"
     ]
   },
   "handlers": {
@@ -52,6 +53,15 @@ logging_config = {
       "formatter": "simple",
       "class": "logging.FileHandler",
       "filename": "star_drive.log"
+    },
+    "email": {
+      "level": "ERROR",
+      "formatter": "simple",
+      "class": "logging.handlers.SMTPHandler",
+      "mailhost": ["smtp.mail.virginia.edu", 25],
+      "fromaddr": "ajl2j@virginia.edu",
+      "toaddrs": ["ajl2j@virginia.edu"],
+      "subject": "Autism DRIVE FAILURE",
     }
   }
 }

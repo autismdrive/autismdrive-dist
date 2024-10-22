@@ -70,5 +70,5 @@
     ```
 7. Reload Apache to apply the changes:
     ```bash
-    service apache2 reload
+    systemctl reload httpd.service
     ```
