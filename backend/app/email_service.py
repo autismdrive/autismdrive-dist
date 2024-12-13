@@ -1,11 +1,14 @@
 import datetime
 import smtplib
 import uuid
+from email import message_from_bytes
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask import render_template, url_for
 from itsdangerous import URLSafeTimedSerializer
+import dkim
+import os
 
 TEST_MESSAGES = []
 
@@ -35,39 +38,64 @@ class EmailService:
         return server
 
     def send_email(self, subject, recipients, text_body, html_body, sender=None, ical=None):
-        msgRoot = MIMEMultipart('related')
-        msgRoot.set_charset('utf8')
+        msg_root = MIMEMultipart('related')
+        msg_root.set_charset('utf8')
 
         if sender is None:
             sender = self.app.config['MAIL_DEFAULT_SENDER']
 
-        msgRoot['Subject'] = Header(subject.encode('utf-8'), 'utf-8').encode()
-        msgRoot['From'] = sender
-        msgRoot['To'] = ', '.join(recipients)
-        msgRoot.preamble = 'This is a multi-part message in MIME format.'
+        msg_root['Subject'] = Header(subject.encode('utf-8'), 'utf-8').encode()
+        msg_root['From'] = sender
+        msg_root['To'] = ', '.join(recipients)
+        msg_root.preamble = 'This is a multi-part message in MIME format.'
 
-        msgAlternative = MIMEMultipart('alternative')
-        msgRoot.attach(msgAlternative)
+        msg_alternative = MIMEMultipart('alternative')
+        msg_root.attach(msg_alternative)
 
         part1 = MIMEText(text_body, 'plain', _charset='UTF-8')
         part2 = MIMEText(html_body, 'html', _charset='UTF-8')
 
-        msgAlternative.attach(part1)
-        msgAlternative.attach(part2)
+        msg_alternative.attach(part1)
+        msg_alternative.attach(part2)
 
         if ical:
             ical_atch = MIMEText(ical.decode("utf-8"),'calendar')
             ical_atch.add_header('Filename','event.ics')
             ical_atch.add_header('Content-Disposition','attachment; filename=event.ics')
-            msgRoot.attach(ical_atch)
+            msg_root.attach(ical_atch)
 
         if 'TESTING' in self.app.config and self.app.config['TESTING']:
             self.app.logger.info("TEST:  Recording Emails, not sending - %s - to:%s" % (subject, recipients))
             TEST_MESSAGES.append(msg_root)
             return
 
+        # DKIM signing logic
+        dkim_private_key_path = self.app.config["DKIM_PRIVATE_KEY_PATH"]
+        if os.path.exists(dkim_private_key_path):
+            with open(self.app.config["DKIM_PRIVATE_KEY_PATH"]) as key_file:
+                dkim_private_key = key_file.read()
+            if dkim_private_key:
+                dkim_selector = self.app.config["DKIM_SELECTOR"]
+                dkim_domain = self.app.config["DKIM_DOMAIN"]
+
+                msg_bytes = msg_root.as_bytes()
+                dkim_headers = [b'from', b'to', b'subject']
+                dkim_signature = dkim.sign(
+                    msg_bytes,
+                    selector=dkim_selector.encode(),
+                    domain=dkim_domain.encode(),
+                    privkey=dkim_private_key.encode(),
+                    include_headers=dkim_headers
+                )
+                msg_bytes = dkim_signature + msg_bytes
+                msg_root = message_from_bytes(msg_bytes)
+            else:
+                self.app.logger.warn("DKIM private key file is empty.")
+        else:
+            self.app.logger.warn("DKIM private key file path is not valid")
+
         server = self.email_server()
-        server.sendmail(sender, recipients, msgRoot.as_bytes())
+        server.sendmail(sender, recipients, msg_root.as_bytes())
         server.quit()
 
     def confirm_email(self, user, current_studies, tracking_code=None, logo_url=None, days='0days'):
