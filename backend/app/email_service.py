@@ -62,8 +62,8 @@ class EmailService:
             msgRoot.attach(ical_atch)
 
         if 'TESTING' in self.app.config and self.app.config['TESTING']:
-            print("TEST:  Recording Emails, not sending - %s - to:%s" % (subject, recipients))
-            TEST_MESSAGES.append(msgRoot)
+            self.app.logger.info("TEST:  Recording Emails, not sending - %s - to:%s" % (subject, recipients))
+            TEST_MESSAGES.append(msg_root)
             return
 
         server = self.email_server()

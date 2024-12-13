@@ -11,7 +11,7 @@ class Geocode:
 
         if 'TESTING' in app.config and app.config['TESTING']:
             z = db.session.query(ZipCode).order_by(func.random()).first()
-            print("TEST:  Pretending to get the geocode and setting lat/lng to  %s - %s" % (z.latitude, z.longitude))
+            app.logger.info("TEST:  Pretending to get the geocode and setting lat/lng to  %s - %s" % (z.latitude, z.longitude))
             return {'lat': z.latitude, 'lng': z.longitude}
 
         else:
@@ -35,6 +35,6 @@ class Geocode:
                         loc = geocode_result[0]['geometry']['location']
                         lat = loc['lat']
                         lng = loc['lng']
-                        print(address_dict, loc)
+                        app.logger.info(address_dict, loc)
 
             return {'lat': lat, 'lng': lng}

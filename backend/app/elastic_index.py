@@ -180,7 +180,7 @@ class ElasticIndex:
             self.index.flush()
 
     def load_documents(self, resources, events, locations, studies):
-        print("Loading search records of events, locations, resources, and studies into Elasticsearch index: %s" % self.index_prefix)
+        self.logger.info("Loading search records of events, locations, resources, and studies into Elasticsearch index: %s" % self.index_prefix)
         for r in resources:
             self.add_document(r, flush=False)
         for e in events:

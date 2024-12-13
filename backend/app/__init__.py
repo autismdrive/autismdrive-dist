@@ -39,6 +39,7 @@ if "MIRRORING" in os.environ and os.environ["MIRRORING"] == "true":
 
 # Database Configuration
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
 """:type: sqlalchemy.orm.SQLAlchemy"""
 
@@ -102,7 +103,7 @@ elastic_index = ElasticIndex(app)
 
 
 def handler(error, endpoint, values=''):
-    print("URL Build error:" + str(error))
+    app.logger.error("URL Build error:" + str(error))
     return ''
 
 

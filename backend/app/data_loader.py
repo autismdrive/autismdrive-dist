@@ -44,7 +44,7 @@ class DataLoader:
         self.user_participant_file = directory + "/user_participants.csv"
         self.zip_code_coords_file = directory + "/zip_code_coords.csv"
         self.chain_steps_file = directory + "/chain_steps.csv"
-        print("Data loader initialized")
+        app.logger.info("Data loader initialized")
 
     def load_categories(self):
         with open(self.category_file, newline='') as csvfile:
@@ -56,7 +56,7 @@ class DataLoader:
                 db.session.add(category)
                 db.session.commit()
 
-        print("Categories loaded.  There are now %i categories in the database." % db.session.query(
+        app.logger.info("Categories loaded.  There are now %i categories in the database." % db.session.query(
             Category).count())
 
     def load_events(self):
@@ -101,10 +101,10 @@ class DataLoader:
                 db.session.add(EventUser(event_id=event.id, user_id=5))
 
         db.session.commit()
-        print("Events loaded.  There are now %i events in the database." % db.session.query(Event).count())
-        print("There are now %i links between events and categories in the database." %
+        app.logger.info("Events loaded.  There are now %i events in the database." % db.session.query(Event).count())
+        app.logger.info("There are now %i links between events and categories in the database." %
               db.session.query(ResourceCategory).filter(ResourceCategory.type == 'event').count())
-        print("There are now %i links between events and users in the database." % db.session.query(EventUser).count())
+        app.logger.info("There are now %i links between events and users in the database." % db.session.query(EventUser).count())
 
     def load_locations(self):
         with open(self.location_file, newline='') as csvfile:
@@ -141,9 +141,9 @@ class DataLoader:
                         db.session.add(ResourceCategory(resource_id=location_id, category_id=category_id, type='location'))
 
         db.session.commit()
-        print("Locations loaded.  There are now %i locations in the database." % db.session.query(
+        app.logger.info("Locations loaded.  There are now %i locations in the database." % db.session.query(
             Location).filter(Location.type == 'location').count())
-        print("There are now %i links between locations and categories in the database." %
+        app.logger.info("There are now %i links between locations and categories in the database." %
               db.session.query(ResourceCategory).filter(ResourceCategory.type == 'location').count())
 
     def load_resources(self):
@@ -172,9 +172,9 @@ class DataLoader:
                         db.session.add(ResourceCategory(resource_id=resource_id, category_id=category_id, type='resource'))
 
         db.session.commit()
-        print("Resources loaded.  There are now %i resources in the database." % db.session.query(
+        app.logger.info("Resources loaded.  There are now %i resources in the database." % db.session.query(
             Resource).filter(Resource.type == 'resource').count())
-        print("There are now %i links between resources and categories in the database." %
+        app.logger.info("There are now %i links between resources and categories in the database." %
               db.session.query(ResourceCategory).filter(ResourceCategory.type == 'resource').count())
 
     def load_studies(self):
@@ -222,11 +222,11 @@ class DataLoader:
                         db.session.commit()
                         study_investigator = StudyInvestigator(study_id=study.id, investigator_id=investigator.id)
                         db.session.add(study_investigator)
-            print("Studies loaded.  There are now %i studies in the database." % db.session.query(
+            app.logger.info("Studies loaded.  There are now %i studies in the database." % db.session.query(
                 Study).count())
-            print("There are now %i links between studies and categories in the database." %
+            app.logger.info("There are now %i links between studies and categories in the database." %
                   db.session.query(StudyCategory).count())
-            print("There are now %i study investigators in the database." %
+            app.logger.info("There are now %i study investigators in the database." %
                   db.session.query(Investigator).count())
         db.session.commit()
 
@@ -238,7 +238,7 @@ class DataLoader:
                 user = User(id=row[0], email=row[1], role=row[3], email_verified=True)
                 user.password = row[2]
                 db.session.add(user)
-            print("Users loaded.  There are now %i users in the database." % db.session.query(
+            app.logger.info("Users loaded.  There are now %i users in the database." % db.session.query(
                 User).count())
         db.session.commit()
 
@@ -251,7 +251,7 @@ class DataLoader:
                 db.session.add(participant)
                 # Users no longer have an id_sequence but are randomly assigned., safe to not increment this.
                 # self.__increment_id_sequence(Participant)
-            print("Participants loaded.  There are now %i participants in the database." % db.session.query(
+            app.logger.info("Participants loaded.  There are now %i participants in the database." % db.session.query(
                 Participant).count())
         db.session.commit()
 
@@ -265,7 +265,7 @@ class DataLoader:
 
         db.session.bulk_save_objects(items)
         db.session.commit()
-        print("ZIP codes loaded.  There are now %i ZIP codes in the database." % db.session.query(ZipCode).count())
+        app.logger.info("ZIP codes loaded.  There are now %i ZIP codes in the database." % db.session.query(ZipCode).count())
 
     def load_partial_zip_codes(self):
         items = []
@@ -278,7 +278,7 @@ class DataLoader:
 
         db.session.bulk_save_objects(items)
         db.session.commit()
-        print("ZIP codes loaded.  There are now %i ZIP codes in the database." % db.session.query(ZipCode).count())
+        app.logger.info("ZIP codes loaded.  There are now %i ZIP codes in the database." % db.session.query(ZipCode).count())
 
     def load_chain_steps(self):
         items = []
@@ -290,7 +290,7 @@ class DataLoader:
 
         db.session.bulk_save_objects(items)
         db.session.commit()
-        print("SkillSTAR Chain Steps loaded.  There are now %i SkillSTAR Chain Steps in the database." % db.session.query(ChainStep).count())
+        app.logger.info("SkillSTAR Chain Steps loaded.  There are now %i SkillSTAR Chain Steps in the database." % db.session.query(ChainStep).count())
 
     def get_category_by_name(self, category_name, parent=None, create_missing=False):
         category = db.session.query(Category).filter(Category.name == category_name).first()
@@ -327,7 +327,7 @@ class DataLoader:
                         loc = geocode_result[0]['geometry']['location']
                         lat = loc['lat']
                         lng = loc['lng']
-                        print(address_dict, loc)
+                        app.logger.info(address_dict, loc)
 
         return {'lat': lat, 'lng': lng}
 
@@ -340,7 +340,7 @@ class DataLoader:
         )
 
     def clear_index(self):
-        print("Clearing the index")
+        app.logger.info("Clearing the index")
         elastic_index.clear()
 
     def clear(self):

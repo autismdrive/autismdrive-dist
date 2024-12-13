@@ -1,7 +1,7 @@
 import datetime
 import requests
 
-# Fire of the scheduler
+# Fire off the scheduler
 # The Data Importer should run on the MIRROR, and will make calls to the primary server to download
 # data, store it locally, and remove it from the master when necessary.
 import logging
@@ -104,7 +104,7 @@ class ImportService:
             else:
                 url = export.url
             url = self.master_url + url
-            print("Calling: " + url)
+            self.logger.info("Calling: " + url)
             response = requests.get(url, headers=self.get_headers())
             export.json_data = response.json()
         return export_list
@@ -137,7 +137,7 @@ class ImportService:
                     log_detail.handle_success()
                     self.db.session.add(log_detail)
                     if hasattr(model, '__question_type__') and model.__question_type__ == ExportService.TYPE_SENSITIVE:
-                        print("Sensitive Data.  Calling Delete.")
+                        self.logger.info("Sensitive Data.  Calling Delete.")
                         self.delete_record(item)
                 except Exception as e:
                     self.db.session.rollback()
@@ -188,5 +188,5 @@ class ImportService:
                 admin._password = password
                 self.db.session.add(admin)
             except:
-                print("Failed to import admin user :" + json_admin['id'])
+                self.logger.error("Failed to import admin user :" + json_admin['id'])
         self.db.session.commit()
