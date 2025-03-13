@@ -9,3 +9,5 @@ _trial_temp.lock
 pylintrc
 star_drive.log
 .DS_Store
+prestart.sh
+uwsgi.ini

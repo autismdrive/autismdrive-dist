@@ -2,3 +2,4 @@
 node_modules/
 pg_backup.config
 .DS_Store
+frontend/config.json
