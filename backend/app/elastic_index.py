@@ -234,14 +234,21 @@ class ElasticIndex:
             elastic_search = elastic_search.filter('bool', **{"should": self._default_filter()})
 
         if search.geo_box:
+
+            # Make sure the GeoBox is at least a square mile.
+            b = search.geo_box
+            min_size = 0.016667  # 1 degree minute = approx. 1 mile
+            lat_offset = 0 if (b.top_left.lat - b.bottom_right.lat) > min_size else min_size/2
+            lon_offset = 0 if (b.top_left.lon - b.bottom_right.lon) > min_size else min_size/2
+
             elastic_search = elastic_search.filter('geo_bounding_box', **{"geo_point": {
                         "top_left" : {
-                            "lat" : search.geo_box.top_left.lat,
-                            "lon" : search.geo_box.top_left.lon
+                            "lat" : b.top_left.lat - lat_offset,
+                            "lon" : b.top_left.lon - lon_offset,
                         },
                         "bottom_right" : {
-                            "lat" : search.geo_box.bottom_right.lat,
-                            "lon" : search.geo_box.bottom_right.lon
+                            "lat" : b.bottom_right.lat + lat_offset,
+                            "lon" : b.bottom_right.lon + lon_offset
                         }
                     }})
 
