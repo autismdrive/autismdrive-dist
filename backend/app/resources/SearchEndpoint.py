@@ -32,7 +32,7 @@ class SearchEndpoint(flask_restful.Resource):
                 search.types = result_types
             results = elastic_index.search(search)
         except elasticsearch.ElasticsearchException as e:
-            raise RestException(RestException.ELASTIC_ERROR, details=json.dumps(e.info))
+            raise RestException(RestException.ELASTIC_ERROR, details=json.dumps(e))
 
         search.reset()  # zero out any existing counts or data on the search prior to populating.
         search.total = results.hits.total
