@@ -235,16 +235,26 @@ def loadparticipants():
 
 
 @app.cli.command()
-def run_full_export():
-    """Remove all data and recreate it from the example data files"""
+def run_full_import():
+    """Import all data from the public backend. NOTE: Can only be run on the private backend."""
     if app.config["MIRRORING"]:
         from app.import_service import ImportService
-        click.echo('Exporting all data.')
+        click.echo('Importing all data from public backend.')
         import_service = ImportService(app, db)
         import_service.run_full_backup()
     else:
-        click.echo('This system is not configured to run exports. Ingoring.')
+        click.echo('This system is not configured to run exports. Ignoring.')
 
+@app.cli.command()
+def run_incremental_import():
+    """Import latest changes from the public backend. NOTE: Can only be run on the private backend."""
+    if app.config["MIRRORING"]:
+        from app.import_service import ImportService
+        click.echo('Importing recent changes from public mirror.')
+        import_service = ImportService(app, db)
+        import_service.run_backup()
+    else:
+        click.echo('This system is not configured to run exports. Ignoring.')
 
 from app import views
 from app.model.email_log import EmailLog
